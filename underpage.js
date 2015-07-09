@@ -16,10 +16,19 @@
   var Translator = function () {
     var self = this;
 
-    self.locationProvider = window.document.location;
+    self.init = function (params) {
+      self.platform = params.platform || 'web';
 
-    self.setLocationProvider = function (provider) {
-      self.locationProvider = provider;
+      var readyEvent = new CustomEvent('underpageReady');
+      window.document.dispatchEvent(readyEvent);
+    };
+
+    self.listenMessages = function () {
+      window.addEventListener('message', function (event) {
+        if (event.data == 'iframeLoaded') {
+          window.Underpage.init('web');
+        }
+      });
     };
 
     // TODO: add error description
@@ -43,16 +52,56 @@
 
     self.exec = function (method, params) {
       if (self.validate(method, params)) {
-        var jsonParams = JSON.stringify(params);
-        var escapedJsonParams = window.escape(jsonParams);
-        var url = APP_NAME + '://' + method + '#' + escapedJsonParams;
+        switch (self.platform) {
+          case 'web':
+            self.execWeb(method, params);
+            break;
 
-        self.locationProvider.href = url;
+          case 'ios':
+          case 'android': 
+            self.execDevice(method, params);
+            break;
+        }
       }
+    };
+
+    self.execWeb = function (method, params) {
+      var message = {
+        message: 'underpagejs',
+        containerType: params.pageType || 'page',
+        method: method,
+        params: params
+      };
+
+      window.parent.postMessage(JSON.stringify(message), '*');
+    };
+
+    self.execDevice = function (method, params) {
+      var jsonParams = JSON.stringify(params);
+      var escapedJsonParams = window.escape(jsonParams);
+      var url = APP_NAME + '://' + method + '#' + escapedJsonParams;
+
+      window.location.href = url;
+    };
+
+    // attach listeners on start
+    self.listenMessages();
+
+    return {
+      init: self.init,
+      exec: self.exec,
+      validate: self.validate
     };
   };
 
-  // export
-  window.Underpage = new Translator();
+  var instance = new Translator();
+
+  if (typeof module === "object" && module.exports) {  
+    // CommonJS support
+    module.exports = instance;
+  }
+  else {
+    window.Underpage = instance;
+  }
 
 })(window);
