@@ -1,0 +1,20 @@
+{
+  "name": "underpage.js",
+  "version": "0.1.0",
+  "description": "Library for a user interaction with HTML widgets in the UnderPage project.",
+  "main": "underpage.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rakhmanoff/underpage.js.git"
+  },
+  "keywords": [
+    "UnderPage",
+    "js"
+  ],
+  "author": "Andrey Rakhmanov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rakhmanoff/underpage.js/issues"
+  },
+  "homepage": "https://github.com/rakhmanoff/underpage.js"
+}
