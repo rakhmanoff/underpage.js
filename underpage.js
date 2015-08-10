@@ -56,10 +56,11 @@
           case 'web':
             self.execWeb(method, params);
             break;
-
           case 'ios':
+            self.execiOS(method, params);
+            break;
           case 'android': 
-            self.execDevice(method, params);
+            self.execAndroid(method, params);
             break;
         }
       }
@@ -76,12 +77,20 @@
       window.parent.postMessage(JSON.stringify(message), '*');
     };
 
-    self.execDevice = function (method, params) {
+    self.execiOS = function (method, params) {
       var jsonParams = JSON.stringify(params);
       var escapedJsonParams = window.escape(jsonParams);
       var url = APP_NAME + '://' + method + '#' + escapedJsonParams;
 
       window.location.href = url;
+    };
+    
+    self.execAndroid = function (method, params) {
+      if (window.upinterface) {
+        var jsonParams = JSON.stringify(params);
+        var escapedJsonParams = window.escape(jsonParams);
+        window.upinterface.exec(method, escapedJsonParams);
+      }
     };
 
     // attach listeners on start
