@@ -21,20 +21,26 @@
     self.init = function (params) {
       self.platform = params.platform || 'web';
 
-      var options = {
+      var readyEvent = new CustomEvent('underpageReady');
+      
+      readyEvent.options = {
         initobject: params.initobject,
         platform: params.platform
       };
-
-      var readyEvent = new CustomEvent('underpageReady', options);
+      
       window.document.dispatchEvent(readyEvent);
     };
 
-    self.callback = function (id, params) {
-      if (self.callbackMap[id]) {
-        self.callbackMap[id](params);
-        self.callbackMap[id] = null;
+    self.callback = function (id, object) {
+      if (object) {
+        object = atob(object);
+        try {
+          object = JSON.parse(object);
+        }
+        catch (e) {}
       }
+      self.callbackMap[id](object);
+      self.callbackMap[id] = null;
     };
 
     self.listenMessages = function () {
@@ -71,6 +77,8 @@
             return false;
 
           return true;
+
+        case 'upjsloaded': return true;
       }
 
       return false;
@@ -81,6 +89,7 @@
         case 'getVariable':
           var id = Math.random().toString();
           self.callbackMap[id] = params.callback;
+          params.callback = id;
           break;
       }
     };
@@ -141,7 +150,7 @@
       sync = sync || 'device';
       self.exec('setVariable', {
         key: key,
-        value: value,
+        value: btoa(value),
         sync: sync
       });
     };
@@ -167,5 +176,4 @@
   else {
     window.Underpage = instance;
   }
-
 })(window);
