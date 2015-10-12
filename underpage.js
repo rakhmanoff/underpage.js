@@ -16,11 +16,25 @@
   var Translator = function () {
     var self = this;
 
+    self.callbackMap = {};
+
     self.init = function (params) {
       self.platform = params.platform || 'web';
 
-      var readyEvent = new CustomEvent('underpageReady');
+      var options = {
+        initobject: params.initobject,
+        platform: params.platform
+      };
+
+      var readyEvent = new CustomEvent('underpageReady', options);
       window.document.dispatchEvent(readyEvent);
+    };
+
+    self.callback = function (id, params) {
+      if (self.callbackMap[id]) {
+        self.callbackMap[id](params);
+        self.callbackMap[id] = null;
+      }
     };
 
     self.listenMessages = function () {
@@ -45,13 +59,36 @@
             return false;
 
           return true;
+
+        case 'setVariable':
+          if (!params.key || !params.value) 
+            return false;
+
+          return true;
+
+        case 'getVariable':
+          if (!params.key || !params.callback) 
+            return false;
+
+          return true;
       }
 
       return false;
     };
 
+    self.prepareMethod = function (method, params) {
+      switch (method) {
+        case 'getVariable':
+          var id = Math.random().toString();
+          self.callbackMap[id] = params.callback;
+          break;
+      }
+    };
+
     self.exec = function (method, params) {
       if (self.validate(method, params)) {
+        self.prepareMethod(method, params);
+
         switch (self.platform) {
           case 'web':
             self.execWeb(method, params);
@@ -93,13 +130,29 @@
       }
     };
 
+    self.getVariable = function (key, callback) {
+      self.exec('getVariable', {
+        key: key,
+        callback: callback
+      });
+    };
+
+    self.setVariable = function (key, value, sync) {
+      sync = sync || 'device';
+      self.exec('setVariable', {
+        key: key,
+        value: value,
+        sync: sync
+      });
+    };
+
     // attach listeners on start
     self.listenMessages();
 
     return {
       init: self.init,
       exec: self.exec,
-      validate: self.validate
+      callback: self.callback
     };
   };
 
