@@ -21,7 +21,14 @@
     self.init = function (params) {
       self.platform = params.platform || 'web';
 
-      var readyEvent = new CustomEvent('underpageReady');
+      var readyEvent;
+  
+      if (typeof CustomEvent != 'undefined') {
+        readyEvent = new CustomEvent('underpageReady')
+      } else {
+        readyEvent = document.createEvent('Event');
+        readyEvent.initEvent('underpageReady', true, false);
+      }
       
       readyEvent.options = {
         initobject: params.initobject,
