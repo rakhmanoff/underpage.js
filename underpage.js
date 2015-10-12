@@ -150,9 +150,11 @@
     self.listenMessages();
 
     return {
-      init: self.init,
-      exec: self.exec,
-      callback: self.callback
+      init:         self.init,
+      exec:         self.exec,
+      callback:     self.callback,
+      getVariable:  self.getVariable,
+      setVariable:  self.setVariable
     };
   };
 
